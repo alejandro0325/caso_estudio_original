@@ -1,4 +1,7 @@
 const express = require('express');
+const cluster = require('cluster');
+const os = require('os');
+const pid = process.pid;
 require('./database');
 
 const app = express();
@@ -126,7 +129,7 @@ app.put('/proyecto/:id', async (req, res) => {
 
 app.delete('/proyecto/:id', async (req, res) => {
   try {
-     await proyectoController.eliminarProyecto(req, res);
+    await proyectoController.eliminarProyecto(req, res);
   } catch (error) {
     res.status(500).json({ error: 'Error al eliminar el objeto' });
   }
@@ -163,7 +166,7 @@ app.put('/tipo-proyecto/:id', async (req, res) => {
 app.delete('/tipo-proyecto/:id', async (req, res) => {
   try {
     objeto = await tipoProyectoController.eliminarTipoProyecto(req, res);
-   
+
   } catch (error) {
     res.status(500).json({ error: 'Error al eliminar el objeto' });
   }
@@ -190,7 +193,7 @@ app.post("/universidad", async (request, response) => {
 
 app.put('/universidad/:id', async (req, res) => {
   try {
-   await universidadController.actualizarUniversidad(req, res);
+    await universidadController.actualizarUniversidad(req, res);
 
   } catch (error) {
     res.status(500).json({ error: 'Error al actualizar el objeto' });
@@ -204,7 +207,26 @@ app.delete('/universidad/:id', async (req, res) => {
     res.status(500).json({ error: 'Error al eliminar el objeto' });
   }
 });
-//Ponemos la aplicacion en escucha
-app.listen(6000, () => {
-  console.log('Servidor en ejecución en el puerto 6000');
-});
+
+
+//Ponemos la aplicacion en escucha sin escalarse
+//app.listen(6000, () => {
+//  console.log('Servidor en ejecución en el puerto 6000');
+//});
+
+//Ponemos la aplicacion en escucha escalandose
+if (cluster.isMaster) {
+  const cpus = os.cpus().length; //Aqui obtenemos la cantidad de cpus libres que hay en el equipo para por ahi lanzar el app
+
+  console.log(`obteniendo ${cpus} CPUs`);
+
+  for (let i = 0; i < cpus; i++) {
+    cluster.fork(); //Se crea varias instancias por cada cpu
+   // console.log(`Iniciando proceso ${pid}`);
+  }
+} else {
+  app.listen(6000, () => {
+    console.log('Servidor en ejecución en el puerto 6000');
+  });
+  console.log(`Iniciando proceso ${pid}`);
+}
