@@ -226,7 +226,7 @@ if (cluster.isMaster) {
   }
 } else {
   app.listen(6000, () => {
-    console.log('Servidor en ejecución en el puerto 6000, jenkins');
+    console.log('Servidor en ejecución en el puerto 6000, jenkins prueba de tarea local');
   });
   console.log(`Iniciando proceso ${pid}`);
 }
